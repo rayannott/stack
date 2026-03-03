@@ -1,5 +1,5 @@
 ---
-title: "Stack — Airat Valiullin"
+title: "My Tech Stack"
 description: "Opinionated how-to guides and reference pages for my dev stack."
 ---
 

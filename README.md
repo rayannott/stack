@@ -12,6 +12,10 @@ A collection of opinionated how-to guides and reference pages for my dev stack.
 - [Node.js](https://nodejs.org/) (for Tailwind CSS)
 
 ### Run locally
+Make sure to add the theme as a submodule:
+```bash
+git submodule update --init --recursive
+```
 
 ```bash
 npm install

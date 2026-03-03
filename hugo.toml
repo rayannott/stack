@@ -1,0 +1,101 @@
+baseURL = "https://stack.airatvaliullin.com/"
+title = "Stack — Airat Valiullin"
+copyright = "© Airat Valiullin"
+languageCode = "en-us"
+enableRobotsTXT = true
+pluralizeListTitles = false
+mainSections = ["fastapi", "git", "pre-commit", "terminal", "cursor"]
+
+theme = "hugo-neso"
+
+[outputs]
+  home = ["html", "rss", "json"]
+
+[minify]
+  minifyOutput = true
+
+# Tailwind integration (required by Neso)
+[build]
+  [build.buildStats]
+    enable = true
+  [[build.cachebusters]]
+    source = 'assets/notwatching/hugo_stats\.json'
+    target = 'css'
+  [[build.cachebusters]]
+    source = '(postcss|tailwind)\.config\.js'
+    target = 'css'
+
+[module]
+  [[module.mounts]]
+    source = 'assets'
+    target = 'assets'
+  [[module.mounts]]
+    disableWatch = true
+    source = 'hugo_stats.json'
+    target = 'assets/notwatching/hugo_stats.json'
+
+[menus]
+  [[menus.main]]
+    identifier = "fastapi"
+    name = "FastAPI"
+    pageRef = "/fastapi"
+    weight = 10
+  [[menus.main]]
+    identifier = "git"
+    name = "Git"
+    pageRef = "/git"
+    weight = 20
+  [[menus.main]]
+    identifier = "pre-commit"
+    name = "Pre-commit"
+    pageRef = "/pre-commit"
+    weight = 30
+  [[menus.main]]
+    identifier = "terminal"
+    name = "Terminal"
+    pageRef = "/terminal"
+    weight = 40
+  [[menus.main]]
+    identifier = "cursor"
+    name = "Cursor"
+    pageRef = "/cursor"
+    weight = 50
+  [[menus.main]]
+    identifier = "search"
+    name = "Search"
+    pageRef = "/search"
+    weight = 60
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.parser]
+      wrapStandAloneImageWithinParagraph = false
+      [markup.goldmark.parser.attribute]
+        block = true
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
+  [markup.tableOfContents]
+    startLevel = 2
+    endLevel = 3
+
+[params]
+  [params.neso]
+    time_format = "January 2, 2006"
+    show_breadcrumbs = true
+    ext_link_indicator = true
+    [params.neso.branding]
+      logo_text = "Stack"
+    [params.neso.home]
+      display_mode = "intro"
+    [params.neso.page]
+      show_breadcrumbs = true
+      show_toc = true
+      show_prev_next = true
+    [params.neso.seo]
+      site_description = "Opinionated how-to guides and reference pages for my dev stack."
+      site_keywords = ["FastAPI", "Git", "Pre-commit", "Terminal", "Cursor"]
+      site_author = ["Airat Valiullin"]
+    [params.neso.search]
+      input_placeholder = "Search guides..."

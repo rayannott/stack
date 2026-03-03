@@ -3,6 +3,7 @@ title = "Stack — Airat Valiullin"
 copyright = "© Airat Valiullin"
 languageCode = "en-us"
 enableRobotsTXT = true
+enableGitInfo = true
 pluralizeListTitles = false
 mainSections = ["fastapi", "git", "pre-commit", "terminal", "cursor"]
 
@@ -92,7 +93,7 @@ theme = "hugo-neso"
     [params.neso.page]
       show_breadcrumbs = true
       show_toc = true
-      show_prev_next = true
+      show_prev_next = false
     [params.neso.seo]
       site_description = "Opinionated how-to guides and reference pages for my dev stack."
       site_keywords = ["FastAPI", "Git", "Pre-commit", "Terminal", "Cursor"]

@@ -4,14 +4,6 @@ A collection of opinionated how-to guides and reference pages for my dev stack.
 
 **Live site:** [stack.airatvaliullin.com](https://stack.airatvaliullin.com)
 
-## Topics
-
-- **FastAPI** — project structure, error handling, testing, deployment
-- **Git** — aliases, workflows
-- **Pre-commit** — setup and hooks
-- **Terminal** — atuin, kitty, micro
-- **Cursor** — setup, prompting
-
 ## Local development
 
 ### Prerequisites
@@ -20,6 +12,10 @@ A collection of opinionated how-to guides and reference pages for my dev stack.
 - [Node.js](https://nodejs.org/) (for Tailwind CSS)
 
 ### Run locally
+Make sure to add the theme as a submodule:
+```bash
+git submodule update --init --recursive
+```
 
 ```bash
 npm install

@@ -3,7 +3,7 @@ title: "Aliases"
 date: 2026-03-03T13:28:00+01:00
 description: "My Git aliases."
 tags: ["Git", "Aliases"]
-draft: true
+draft: false
 params:
   neso:
     show_toc: true

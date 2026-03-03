@@ -5,7 +5,7 @@ languageCode = "en-us"
 enableRobotsTXT = true
 enableGitInfo = true
 pluralizeListTitles = false
-mainSections = ["fastapi", "git", "pre-commit", "terminal", "cursor"]
+mainSections = ["development", "tools", "misc"]
 
 theme = "hugo-neso"
 
@@ -35,33 +35,6 @@ theme = "hugo-neso"
     source = 'hugo_stats.json'
     target = 'assets/notwatching/hugo_stats.json'
 
-[menus]
-  [[menus.main]]
-    identifier = "fastapi"
-    name = "FastAPI"
-    pageRef = "/fastapi"
-    weight = 10
-  [[menus.main]]
-    identifier = "git"
-    name = "Git"
-    pageRef = "/git"
-    weight = 20
-  [[menus.main]]
-    identifier = "terminal"
-    name = "Terminal"
-    pageRef = "/terminal"
-    weight = 40
-  [[menus.main]]
-    identifier = "cursor"
-    name = "Cursor"
-    pageRef = "/cursor"
-    weight = 50
-  [[menus.main]]
-    identifier = "search"
-    name = "Search"
-    pageRef = "/search"
-    weight = 60
-
 [markup]
   [markup.goldmark]
     [markup.goldmark.parser]
@@ -78,7 +51,7 @@ theme = "hugo-neso"
 
 [params]
   [params.neso]
-    time_format = "January 2, 2006"
+    time_format = "2006-01-02"
     show_breadcrumbs = true
     ext_link_indicator = true
     [params.neso.branding]
@@ -91,7 +64,5 @@ theme = "hugo-neso"
       show_prev_next = false
     [params.neso.seo]
       site_description = "Opinionated how-to guides and reference pages for my dev stack."
-      site_keywords = ["FastAPI", "Git", "Pre-commit", "Terminal", "Cursor"]
+      site_keywords = ["Development", "Tools", "Misc"]
       site_author = ["Airat Valiullin"]
-    [params.neso.search]
-      input_placeholder = "Search guides..."

@@ -1,0 +1,26 @@
+{{- define "main" }}
+
+{{- $uiIcons := partialCached "_funcs/get-ui-icons.html" . }}
+
+<section class="layout last:expansive">
+
+    {{- partial "content/header.html" . }}
+
+    {{- if .Content }}
+        <div class="cnt not-last:mb-r-xl">
+            {{- if not site.Params.neso.page.disable_heading_links }}
+                {{- partial "content/heading_links.html" .Content }}
+            {{- else }}
+                {{ .Content }}
+            {{- end }}
+        </div>
+    {{- end }}
+    
+    {{- $pages := .Pages }}
+    {{- $paginator := .Paginate $pages }}
+
+    {{- partial "list_body.html" (dict "ctx" . "paginator" $paginator) }}
+
+</section>
+
+{{- end -}}

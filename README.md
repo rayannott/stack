@@ -4,14 +4,6 @@ A collection of opinionated how-to guides and reference pages for my dev stack.
 
 **Live site:** [stack.airatvaliullin.com](https://stack.airatvaliullin.com)
 
-## Topics
-
-- **FastAPI** — project structure, error handling, testing, deployment
-- **Git** — aliases, workflows
-- **Pre-commit** — setup and hooks
-- **Terminal** — atuin, kitty, micro
-- **Cursor** — setup, prompting
-
 ## Local development
 
 ### Prerequisites

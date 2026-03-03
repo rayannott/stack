@@ -47,11 +47,6 @@ theme = "hugo-neso"
     pageRef = "/git"
     weight = 20
   [[menus.main]]
-    identifier = "pre-commit"
-    name = "Pre-commit"
-    pageRef = "/pre-commit"
-    weight = 30
-  [[menus.main]]
     identifier = "terminal"
     name = "Terminal"
     pageRef = "/terminal"

@@ -9,7 +9,7 @@ params:
     show_toc: true
 ---
 
-I prefer to use git in my [terminal](/terminal) --- this way I can see the output of the commands I run, and thanks to the following aliases, it is blazingly fast.
+I prefer to use git in my [terminal](tools/terminal) --- this way I can see the output of the commands I run, and thanks to the following aliases, it is blazingly fast.
 
 <!--more-->
 

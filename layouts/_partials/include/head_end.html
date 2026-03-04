@@ -4,10 +4,12 @@
 {{- if hasPrefix $path "/tools/git" -}}
     {{- $favicon = "/favicons/git.svg" -}}
 {{- else if hasPrefix $path "/tools/cursor" -}}
-    {{- $favicon = "/favicons/cursor.svg" -}}
+    {{- $favicon = "/favicons/cursor.png" -}}
 {{- else if hasPrefix $path "/tools/terminal" -}}
     {{- $favicon = "/favicons/terminal.svg" -}}
 {{- else if hasPrefix $path "/tools/linux" -}}
-    {{- $favicon = "/favicons/linux.svg" -}}
+    {{- $favicon = "/favicons/linux.png" -}}
+{{- else if hasPrefix $path "/tools" -}}
+    {{- $favicon = "/favicons/tools.svg" -}}
 {{- end -}}
 <link rel="icon" type="image/svg+xml" href="{{ $favicon | absURL }}">

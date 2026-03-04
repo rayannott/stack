@@ -68,5 +68,3 @@ gws -  # switch back
 gpl  # pull the latest changes
 gfop  # remove local branches that are no longer on remote
 ```
-
-And now I'm gonna 

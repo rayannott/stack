@@ -1,0 +1,16 @@
+{{- $children := .Pages }}
+{{- $hasChildren := gt (len $children) 0 }}
+<li{{ if $hasChildren }} class="ct-section"{{ end }}>
+  <a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+  {{- if $hasChildren }}
+  <ul>
+    {{- range $children }}
+      {{- if .IsSection }}
+        {{- partial "content-tree-item.html" . }}
+      {{- else }}
+    <li><a href="{{ .RelPermalink }}">{{ .LinkTitle }}</a></li>
+      {{- end }}
+    {{- end }}
+  </ul>
+  {{- end }}
+</li>

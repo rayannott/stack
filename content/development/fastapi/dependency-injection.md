@@ -66,7 +66,7 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 # src/api.py
 @router.get("/health")
 def health(settings: SettingsDep) -> dict:
-    return {"log_level": settings.log_level}
+    return {"status": "ok", "log_level": settings.log_level}
 ```
 
 **Testing:** override the dependency --- `lru_cache` is bypassed entirely:

@@ -9,8 +9,16 @@ mainSections = ["development", "tools", "misc"]
 
 theme = "hugo-neso"
 
+[outputFormats.Raw]
+  mediaType = "text/markdown"
+  baseName = "raw"
+  isPlainText = true
+  notAlternative = true
+
 [outputs]
   home = ["html", "rss", "json"]
+  page = ["html", "Raw"]
+  section = ["html", "rss", "Raw"]
 
 [minify]
   minifyOutput = true

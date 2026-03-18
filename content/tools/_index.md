@@ -1,6 +1,6 @@
 ---
 title: "Tools"
 description: "Reference pages for my tools stack."
-weight: 1
+weight: 10
 menu: main
 ---

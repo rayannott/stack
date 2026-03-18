@@ -1,6 +1,6 @@
 ---
 title: "Terminal"
-description: "Configuration and tips for terminal tools: atuin, kitty, micro."
-summary: "These are my terminal tools: atuin, kitty, micro, and more."
+description: "Configuration, aliases, and tips for terminal tools."
+summary: "This is where I live."
 weight: 4
 ---

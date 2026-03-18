@@ -1,6 +1,6 @@
 ---
 title: "Git"
-description: "This is how I use Git: aliases, workflows, and tips."
-summary: "Aliases, workflows, and more."
+description: "This is how I use Git."
+summary: "Workflows and more."
 weight: 2
 ---

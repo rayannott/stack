@@ -8,7 +8,7 @@ This is how I set up clean and maintainable **FastAPI** projects: DI, testing, v
 <!--more-->
 
 > [!TIP]
-> I encourage you to feed the contents of this cookbook into your AI agent of choice. Append `raw.md` to any page URL to get the raw markdown (e.g. [this page's source](raw.md)).
+> I encourage you to feed the contents of this cookbook into your AI agent of choice. Append `raw.md` to any page URL to get the raw markdown (e.g. [this page's source](raw.md), or the "Source" icon next to any page's title).
 
 ## What's inside
 

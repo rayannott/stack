@@ -2,7 +2,7 @@
 title: "Testing"
 date: 2026-03-18
 description: "pytest with httpx.AsyncClient, dependency_overrides, fixtures, and factory pattern for test data."
-weight: 5
+weight: 50
 draft: false
 params:
   neso:

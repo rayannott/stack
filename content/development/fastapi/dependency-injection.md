@@ -2,7 +2,7 @@
 title: "Dependency Injection"
 date: 2026-03-18
 description: "Idiomatic dependency injection in FastAPI: settings, singletons, per-request objects, and when to reach for dependency-injector."
-weight: 2
+weight: 20
 draft: false
 params:
   neso:
@@ -31,17 +31,7 @@ That handles the vast majority of real-world apps. A third-party container (`dep
 
 **Pattern: `lru_cache` + `Depends`**
 
-`Settings()` reads from disk (`.env`) or the environment, so you memoize it. Since settings are immutable after creation, `lru_cache` is safe.
-
-```python
-# src/config.py
-from pydantic_settings import BaseSettings
-
-
-class Settings(BaseSettings):
-    database_url: str = "sqlite:///dev.db"
-    log_level: str = "INFO"
-```
+`Settings()` reads from disk (`.env`) or the environment, so you memoize it. Since settings are immutable after creation, `lru_cache` is safe. (For the full `Settings` class setup --- nested settings, prefixes, env-specific overrides --- see the [Configuration](../configuration) page.)
 
 ```python
 # src/dependencies.py
@@ -66,7 +56,7 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 # src/api.py
 @router.get("/health")
 def health(settings: SettingsDep) -> dict:
-    return {"status": "ok", "log_level": settings.log_level}
+    return {"status": "ok", "debug": settings.debug}
 ```
 
 **Testing:** override the dependency --- `lru_cache` is bypassed entirely:

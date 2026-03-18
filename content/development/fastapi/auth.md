@@ -2,7 +2,7 @@
 title: "Auth"
 date: 2026-03-18
 description: "OAuth2 with JWT, security schemes via Depends, role-based access, and testing authenticated endpoints."
-weight: 7
+weight: 70
 draft: false
 params:
   neso:

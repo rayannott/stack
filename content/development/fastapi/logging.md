@@ -28,7 +28,8 @@ logger.info("Server started")
 logger.warning("Slow query | elapsed={elapsed:.1f}s", elapsed=1.2)
 logger.error("Failed to connect to DB")
 ```
-Here, `loguru` interpolates the `elapsed` variable into the message string. This also lays the groundwork for structured logging, where the message is a template and the variables are the data.
+> [!NOTE]
+> Here, `loguru` interpolates the `elapsed` variable into the message string. This also lays the groundwork for structured logging, where the message is a template and the variables are the data.
 
 That's it --- no `getLogger`, no handler setup, no formatter strings. The default output is colorized, includes timestamps, levels, module/function/line, and looks good out of the box.
 
@@ -40,6 +41,7 @@ loguru reads the `LOGURU_LEVEL` environment variable to set the minimum log leve
 # .env
 LOGURU_LEVEL=DEBUG    # dev
 ```
+Speaking of local development, [direnv]({{< ref "/tools/terminal/direnv" >}}) can auto-load `.env` files when you `cd` into the project directory. Decrease the mental overhead of having to remember these small details and rather spend your brain power on the more important things.
 
 ```bash
 # production

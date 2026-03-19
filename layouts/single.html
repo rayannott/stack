@@ -1,0 +1,86 @@
+{{- define "main" }}
+
+{{- $uiIcons := partialCached "_funcs/get-ui-icons.html" . }}
+
+<section class="layout last:expansive">
+    <article>
+
+        {{- partial "content/header.html" . }}
+        
+        {{- $coverHidden := .Param "neso.cover.hidden_in_single" | default false }}
+        {{- if and .Params.neso.cover.image (not $coverHidden) }}
+            <figure class="mb-r-xl [&_img]:mx-auto [&_img]:rounded-md">
+                {{- partial "content/cover.html" (dict "ctx" . "IsSingle" true "isHero" true) }}
+            </figure>
+        {{- end }}
+
+        {{- /* TOC visibility — Site default; FM can override true/false */}}
+        {{- $showToc := site.Params.neso.page.show_toc }}
+        {{- with .Params.neso.show_toc }}
+            {{- $showToc = . }}
+        {{- end }}
+        {{- if $showToc }}
+            {{- partial "content/toc.html" . }}
+        {{- end }}
+
+        {{- if .Content }}
+            <div class="cnt mb-r-xl last:mb-0">
+                {{- if not site.Params.neso.page.disable_heading_links }}
+                    {{- partial "content/heading_links.html" .Content }}
+                {{- else }}
+                    {{ .Content }}
+                {{- end }}
+            </div>
+        {{- end }}
+
+        {{- /* Footer visibility — Site default true (unless configured); FM can only disable */}}
+        {{- $showFooter := site.Params.neso.page.show_content_footer | default true }}
+        {{- with .Params.neso.disable_content_footer }}
+            {{- if . }}{{- $showFooter = false }}{{- end }}
+        {{- end }}
+
+        {{- /* Prev/Next visibility — Site default; FM can override */}}
+        {{- $showPrevNext := site.Params.neso.page.show_prev_next }}
+        {{- with .Params.neso.show_prev_next }}
+            {{- $showPrevNext = . }}
+        {{- end }}
+
+        {{- /* Share buttons visibility — Site default; FM can only disable */}}
+        {{- $showShare := site.Params.neso.page.show_share }}
+        {{- with .Params.neso.disable_share }}
+            {{- if . }}{{- $showShare = false }}{{- end }}
+        {{- end }}
+
+        {{- if $showFooter }}
+
+        <footer class="not-last:mb-r-xl wrap-anywhere">
+            {{- $tags := .Language.Params.Taxonomies.tag | default "tags" }}
+            <ul class="flex flex-wrap gap-3 mb-r-lg last:mb-0">
+                {{- range ($.GetTerms $tags) }}
+                    <li class="contents">
+                        <a class="btn" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>
+                    </li>
+                {{- end }}
+            </ul>
+            {{- if $showShare }}
+                {{- partial "content/share.html" . }}
+            {{- end }}
+            {{- if $showPrevNext }}
+                {{- partial "content/prev_next.html" . }}
+            {{- end }}
+        </footer>
+        {{- end }}
+
+        {{- /* Comments visibility — Site enables; FM (if present and true) can only disable */}}
+        {{- $showComments := site.Params.neso.page.enable_comments }}
+        {{- with .Params.neso.disable_comments }}
+            {{- if . }}{{- $showComments = false }}{{- end }}
+        {{- end }}
+        {{- if $showComments }}
+            {{- partial "content/comments.html" . }}
+        {{- end }}
+
+    </article>
+</section>
+
+{{- end -}}

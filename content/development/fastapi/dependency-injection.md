@@ -72,7 +72,7 @@ app.dependency_overrides[get_settings] = lambda: Settings(database_url="sqlite:/
 Resources with mutable state or teardown needs should be created once in the lifespan context manager and stored on `app.state`. Do **not** use `lru_cache` for these --- it has no shutdown hook, operates outside FastAPI's lifecycle, and interacts awkwardly with `dependency_overrides`.
 
 ```python
-# src/main.py
+# src/app.py
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -97,8 +97,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # teardown: close pools, flush caches, etc.
 
 
-app = FastAPI(lifespan=lifespan)
-app.include_router(router)
+def create_app() -> FastAPI:
+    app = FastAPI(lifespan=lifespan)
+    app.include_router(router)
+    return app
 ```
 
 ```python
@@ -182,7 +184,7 @@ async def get_user(user_id: int, db: DbSession) -> UserResponse:
 The corresponding lifespan setup for the session factory:
 
 ```python
-# src/main.py  (add to lifespan)
+# src/app.py  (add to lifespan)
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 

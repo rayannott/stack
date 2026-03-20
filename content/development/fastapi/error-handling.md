@@ -98,26 +98,33 @@ async def get_user(user_id: int, db: DbSession) -> UserResponse:
 
 ## Exception Handlers
 
-FastAPI needs a handler to convert `AppError` into an HTTP response. Register it on the app:
+FastAPI needs a handler to convert `AppError` into an HTTP response. Keep handlers in their own module to avoid cluttering `create_app`:
 
 ```python
-# src/main.py
+# src/exception_handlers.py
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from src.exceptions import AppError
 
 
-def create_app() -> FastAPI:
-    app = FastAPI(...)
-
+def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         return JSONResponse(
             status_code=exc.status_code,
             content={"title": exc.title, "detail": exc.detail},
         )
+```
 
+```python
+# src/app.py
+from src.exception_handlers import register_exception_handlers
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(...)
+    register_exception_handlers(app)
     # ... routers, middleware ...
     return app
 ```
@@ -156,17 +163,17 @@ class ProblemDetail(BaseModel):
 ```
 
 ```python
-# src/main.py
+# src/exception_handlers.py
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
 from src.exceptions import AppError
 from src.schemas.errors import ProblemDetail
-
 
 ERROR_TYPE_BASE = "https://my-api.example.com/errors"
 
 
-def create_app() -> FastAPI:
-    app = FastAPI(...)
-
+def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         slug = exc.title.lower().replace(" ", "-")
@@ -182,8 +189,6 @@ def create_app() -> FastAPI:
             content=body.model_dump(exclude_none=True),
             media_type="application/problem+json",
         )
-
-    return app
 ```
 
 > [!NOTE]
@@ -209,17 +214,16 @@ FastAPI's default response for invalid request data (`RequestValidationError`) l
 }
 ```
 
-The `url` field (added by Pydantic v2) is noisy for API consumers, and the shape doesn't match the problem-detail format. Override the handler to clean it up:
+The `url` field (added by Pydantic v2) is noisy for API consumers, and the shape doesn't match the problem-detail format. Add a handler to `register_exception_handlers` with a second handler for `RequestValidationError`:
 
 ```python
-# src/main.py
+# src/exception_handlers.py  (continued)
 from fastapi.exceptions import RequestValidationError
 
-from src.schemas.errors import ProblemDetail
 
-
-def create_app() -> FastAPI:
-    app = FastAPI(...)
+def register_exception_handlers(app: FastAPI) -> None:
+    @app.exception_handler(AppError)
+    async def app_error_handler(...) -> JSONResponse: ...  # as above
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(
@@ -248,8 +252,6 @@ def create_app() -> FastAPI:
             content=payload,
             media_type="application/problem+json",
         )
-
-    return app
 ```
 
 The response now looks like this:

@@ -206,7 +206,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=["*"],  # ⚠ dev only — see warning below
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -227,6 +227,9 @@ app = create_app()
 ```
 
 `main.py` is the file the FastAPI CLI discovers (`fastapi dev` looks for an `app` variable in `main.py`). Tests import `create_app` from `src.app` and never touch `main.py`.
+
+> [!WARNING]
+> `allow_origins=["*"]` is fine for local development but **must not** be used in production --- it allows any website to make credentialed requests to your API. In production, list your specific origins (e.g. `["https://app.example.com"]`). See the [FastAPI CORS docs](https://fastapi.tiangolo.com/tutorial/cors/).
 
 > [!WARNING]
 > Don't put heavy initialization (DB connections, HTTP clients) inside `create_app()` directly --- use the lifespan context manager instead. `create_app()` should be fast and side-effect-free so tests can call it freely. See [Dependency Injection](../dependency-injection) for the lifespan pattern.

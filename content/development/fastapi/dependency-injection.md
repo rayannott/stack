@@ -237,6 +237,7 @@ FastAPI runs **sync** route handlers in a threadpool. All patterns above produce
   - Sync handlers: use `threading.Lock` to protect shared mutable state.
   - Async handlers: use `asyncio.Lock` --- concurrent coroutines interleave at `await` points, so shared mutable state still needs protection even though there's no threadpool involved.
   - Or delegate to a database / cache that handles concurrency internally.
+- **Per-worker-process**: with `uvicorn --workers N` (or Gunicorn), each worker is a separate OS process with its own copy of `app.state`. Singletons are not shared across workers --- keep this in mind for in-memory caches, warmup data, and startup side effects.
 
 ## Further Reading
 

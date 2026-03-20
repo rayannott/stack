@@ -1,7 +1,7 @@
 ---
 title: "Configuration"
 date: 2026-03-18
-description: "Type-safe configuration with pydantic-settings: .env files and grouped settings with prefixes."
+description: "Type-safe configuration with pydantic-settings: .env files, nested settings, and secrets."
 weight: 15
 draft: false
 params:
@@ -48,28 +48,24 @@ DATABASE_URL=postgresql+asyncpg://user:pass@localhost/mydb
 
 For how to inject `Settings` into route handlers via `Depends`, see the [Dependency Injection](../dependency-injection#1-settings-read-only-config-from-env--env) page.
 
-## Grouped Settings with Prefixes
+## Nested Settings
 
-As the settings class grows, group related config into sub-settings with their own `env_prefix`:
+As the settings class grows, group related config into nested `BaseModel` sub-models. Set `env_nested_delimiter` on the root `Settings` so pydantic-settings can map environment variables like `DB__POOL_SIZE` to `settings.db.pool_size`:
 
 ```python
 # src/config.py
+from pydantic import BaseModel, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class DatabaseSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="DB_")
-
+class DatabaseSettings(BaseModel):
     url: str = "sqlite+aiosqlite:///dev.db"
-    username: str = "user"
-    password: str = "pass"
+    password: SecretStr = SecretStr("")
     pool_size: int = 5
     echo: bool = False
 
 
-class RedisSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="REDIS_")
-
+class RedisSettings(BaseModel):
     url: str = "redis://localhost:6379/0"
     ttl: int = 3600
 
@@ -77,6 +73,7 @@ class RedisSettings(BaseSettings):
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
+        env_nested_delimiter="__",
         extra="ignore",
     )
 
@@ -89,12 +86,16 @@ class Settings(BaseSettings):
 
 ```bash
 # .env
-DB_URL=postgresql+asyncpg://user:pass@localhost/mydb
-DB_POOL_SIZE=20
-REDIS_URL=redis://cache:6379/0
+DB__URL=postgresql+asyncpg://user:pass@localhost/mydb
+DB__PASSWORD=s3cret
+DB__POOL_SIZE=20
+REDIS__URL=redis://cache:6379/0
 ```
 
-Each sub-settings class loads its own env vars independently via its prefix. Access in code reads naturally: `settings.db.url`, `settings.redis.ttl`.
+The field name becomes the prefix automatically --- `db: DatabaseSettings` maps to `DB__*` env vars. Access in code reads naturally: `settings.db.url`, `settings.redis.ttl`.
+
+> [!NOTE]
+> Nested sub-models inherit from `BaseModel`, **not** `BaseSettings`. Only the root class should be `BaseSettings` --- this is the pattern the [pydantic-settings docs](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) document for nested configuration. `env_prefix` on sub-models has no effect; the delimiter handles nesting.
 
 
 ## Why use `pydantic-settings` when we have...
@@ -109,6 +110,14 @@ Also, with a `Settings` object you get two ways to control config in tests: swap
 
 
 ## Practical tips
-> [!WARNING]
-> Please don't commit the `.env` files to version control 😊
-<!-- TODO(airat) add more -->
+
+Use `SecretStr` for any field that holds a secret (passwords, API keys, tokens). It prevents the value from leaking into logs, tracebacks, and `model_dump()` output:
+
+```python
+from pydantic import SecretStr
+
+password: SecretStr = SecretStr("")
+
+settings.db.password.get_secret_value()  # access the actual value
+str(settings.db.password)                # → '**********'
+```

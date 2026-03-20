@@ -111,6 +111,22 @@ async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
 
 All fixtures default to `function` scope --- each test gets a fresh app, fresh overrides, and a fresh client. Widen scope only when test speed demands it and you've verified there's no shared mutable state.
 
+> [!NOTE]
+> `AsyncClient` with `ASGITransport` does **not** trigger [lifespan events](https://fastapi.tiangolo.com/advanced/async-tests/#httpx). That's fine here --- `dependency_overrides` bypasses everything the lifespan would set up, so `app.state` never needs to be populated. For integration tests that use real dependencies (no overrides), wrap the app in [`LifespanManager`](https://github.com/florimondmanca/asgi-lifespan) so the lifespan runs:
+>
+> ```python
+> from asgi_lifespan import LifespanManager
+>
+> @pytest.fixture
+> async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
+>     async with LifespanManager(app):
+>         async with AsyncClient(
+>             transport=ASGITransport(app=app),
+>             base_url="http://test",
+>         ) as ac:
+>             yield ac
+> ```
+
 Integration tests that need a real database add their own `conftest.py` in `tests/integration/` with a session-scoped DB fixture --- see [Project Structure](../project-structure) for the directory layout.
 
 ### Coverage

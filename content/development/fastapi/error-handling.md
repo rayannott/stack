@@ -196,6 +196,9 @@ def register_exception_handlers(app: FastAPI) -> None:
 
 This replaces the simpler handler from the previous section --- the `AppError` hierarchy stays exactly the same.
 
+> [!WARNING]
+> The `type` URI derived from `exc.title` is a quick start, but RFC 9457 expects type URIs to be **stable identifiers**. If a title changes, the URI changes, breaking clients that match on it. For production APIs, define type URIs as explicit constants on each exception class (e.g. `error_type = "not-found"`) instead of deriving them from presentation text.
+
 ## Reshaping Validation Errors
 
 FastAPI's default response for invalid request data (`RequestValidationError`) looks like this:
@@ -272,3 +275,6 @@ The response now looks like this:
 
 > [!WARNING]
 > The `errors` extension field is allowed by RFC 9457 (the spec is extensible), but not all tools will know about it. The top-level `title`, `status`, and `detail` fields are always enough for a human or a generic error handler to understand what went wrong.
+
+> [!WARNING]
+> Reshaping `RequestValidationError` changes the response contract. Clients and SDK generators that expect FastAPI's native validation shape (`{"detail": [...]}`) will break. Decide early whether your API uses the default shape or problem-detail --- switching later is a breaking change.

@@ -213,20 +213,22 @@ Now any field typed as `LowercaseStr` gets the validation automatically --- no d
 
 ### Return type vs `response_model`
 
-Modern FastAPI (0.95+) infers the response schema from the return type annotation. Prefer this over the `response_model` parameter:
+Modern FastAPI (0.95+) infers the response schema from the return type annotation. When the return type *is* the public schema, this is the cleanest approach:
 
 ```python
-# Preferred: return type annotation
+# Return type is the public schema --- no response_model needed
 @router.get("/users/{user_id}")
 async def get_user(user_id: int, db: DbSession) -> UserResponse:
     ...
 
-# Only use response_model when you need to filter fields from a
-# model that has more fields than you want to expose
+# Use response_model when the API contract differs from the
+# implementation return type (filtering, coercion, union disambiguation)
 @router.get("/users/me", response_model=UserPublic)
 async def get_current_user(db: DbSession) -> User:
     ...
 ```
+
+When both are present, `response_model` takes priority.
 
 ### ORM integration (`from_attributes`)
 

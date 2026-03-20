@@ -59,10 +59,10 @@ def health(settings: SettingsDep) -> dict:
     return {"status": "ok", "debug": settings.debug}
 ```
 
-**Testing:** override the dependency --- `lru_cache` is bypassed entirely:
+**Testing:** override the dependency --- `lru_cache` is bypassed entirely. See [Testing](../testing#dependency_overrides) for the full fixture pattern.
 
 ```python
-app.dependency_overrides[get_settings] = lambda: Settings(database_url="sqlite:///test.db")
+app.dependency_overrides[get_settings] = lambda: Settings(database_url="sqlite+aiosqlite:///test.db")
 ```
 
 ## 2. Stateful singletons (repos, services, DB pools)
@@ -77,24 +77,25 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.api import router
-from src.dependencies import get_settings  # called directly, not via Depends
-from src.repository import InMemoryRepository
+from src.dependencies import get_settings
+from src.repository import BookingRepository
 from src.service import BookingService
 from src.solver import Solver
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # get_settings() is called directly here because the lifespan runs
-    # outside the request cycle --- Depends() is not available.
-    settings = get_settings()
-    app.state.repo = InMemoryRepository()
-    app.state.solver = Solver()
-    app.state.service = BookingService(app.state.repo, app.state.solver)
+    # Depends() is not available here --- call get_settings() directly.
+    settings = get_settings()                            # ← Settings (see Configuration)
+    engine = create_async_engine(settings.database_url)  # ← from settings
+    app.state.session_factory = async_sessionmaker(engine, expire_on_commit=False)
+    app.state.repo = BookingRepository(app.state.session_factory)
+    app.state.service = BookingService(app.state.repo, Solver())
     yield
-    # teardown: close pools, flush caches, etc.
+    await engine.dispose()
 
 
 def create_app() -> FastAPI:
@@ -109,13 +110,19 @@ from typing import Annotated
 
 from fastapi import Depends, Request
 
+from src.repository import BookingRepository
 from src.service import BookingService
 
 
+def get_repo(request: Request) -> BookingRepository:
+    return request.app.state.repo
+
+
 def get_service(request: Request) -> BookingService:
-    return request.app.state.service  # pointer read, zero cost per request
+    return request.app.state.service
 
 
+RepoDep = Annotated[BookingRepository, Depends(get_repo)]
 ServiceDep = Annotated[BookingService, Depends(get_service)]
 ```
 
@@ -130,10 +137,10 @@ def list_rooms(service: ServiceDep) -> list[RoomResponse]:
     return [RoomResponse(room_id=rid) for rid in service.list_rooms()]
 ```
 
-**Testing:** override at the dependency level, no monkey-patching needed:
+**Testing:** override at the dependency level, no monkey-patching needed. The override short-circuits the entire lifespan chain (engine → session_factory → repo → service). See [Testing](../testing#dependency_overrides) for the full fixture pattern.
 
 ```python
-app.dependency_overrides[get_service] = lambda: BookingService(mock_repo, mock_solver)
+app.dependency_overrides[get_service] = lambda: BookingService(mock_repo, Solver())
 ```
 
 **Key properties:**
@@ -168,36 +175,9 @@ async def get_db(request: Request) -> AsyncIterator[AsyncSession]:
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 ```
 
-```python
-# src/api.py
-from src.dependencies import DbSession
-from src.schemas import UserResponse
+In a layered architecture, `DbSession` is consumed by the repository layer --- route handlers interact with services only (see [section 2](#2-stateful-singletons-repos-services-db-pools)). The `session_factory` is already on `app.state` --- it was set up in the lifespan alongside the engine and connection pool (created from [`settings.database_url`](../configuration)).
 
-
-@router.get("/users/{user_id}")
-async def get_user(user_id: int, db: DbSession) -> UserResponse:
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one()
-    return UserResponse.model_validate(user)
-```
-
-The corresponding lifespan setup for the session factory:
-
-```python
-# src/app.py  (add to lifespan)
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    settings = get_settings()
-    engine = create_async_engine(settings.database_url)
-    app.state.session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    yield
-    await engine.dispose()  # close the connection pool on shutdown
-```
-
-**Testing:** override `get_db` to return an in-memory SQLite session or a transaction-rolled-back session:
+**Testing:** override `get_db` to return an in-memory SQLite session or a transaction-rolled-back session. See [Testing](../testing#dependency_overrides) for the full fixture pattern.
 
 ```python
 app.dependency_overrides[get_db] = lambda: test_session
@@ -210,7 +190,7 @@ FastAPI's native DI covers two lifetimes: per-request (`Depends`) and per-proces
 Consider the [`dependency-injector`](https://python-dependency-injector.ets-labs.org/) library when:
 
 - **DI is needed outside route handlers** --- Celery tasks, CLI commands, background workers. FastAPI's `Depends` only works inside route handlers.
-- **You need richer lifecycle semantics** --- `Factory` (new instance per call), `Resource` (singleton with init/shutdown), `ThreadLocalSingleton`, `ContextLocalSingleton`.
+- **You need richer lifecycle semantics** --- `Factory` (new instance per call), `Resource` (singleton with init/shutdown), `Singleton` (singleton with init/shutdown).
 - **Your dependency graph is deep** --- a declarative container makes a complex graph (Service -> Repo -> Pool -> Settings) visible in one place instead of scattered across lifespan + multiple `get_*` functions.
 - **You need granular test overrides** --- `.override()` works on any provider at any depth, not just at the handler boundary.
 
@@ -257,3 +237,10 @@ FastAPI runs **sync** route handlers in a threadpool. All patterns above produce
   - Sync handlers: use `threading.Lock` to protect shared mutable state.
   - Async handlers: use `asyncio.Lock` --- concurrent coroutines interleave at `await` points, so shared mutable state still needs protection even though there's no threadpool involved.
   - Or delegate to a database / cache that handles concurrency internally.
+
+## Further Reading
+
+- [FastAPI - Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/) --- how to use the `Depends` decorator to inject dependencies into route handlers.
+- [FastAPI - Lifespan Events](https://fastapi.tiangolo.com/advanced/events/) --- how to use the lifespan context manager to create and manage resources.
+- [Starlette - State](https://www.starlette.io/applications/#storing-state-on-the-app-instance) --- how to store state on the app instance.
+- [dependency-injector](https://python-dependency-injector.ets-labs.org/) --- third-party DI container for deeper/complex non-FastAPI dependency graphs.

@@ -1,7 +1,7 @@
 ---
 title: "Dependency Injection"
 date: 2026-03-18
-description: "Idiomatic dependency injection in FastAPI: settings, singletons, per-request objects, and when to reach for dependency-injector."
+description: "Idiomatic dependency injection in FastAPI: settings, singletons, and per-request objects."
 weight: 20
 draft: false
 params:
@@ -25,7 +25,7 @@ FastAPI's native DI covers two lifetimes out of the box:
 - **Per-process** singletons via the lifespan context manager
 - **Per-request** objects via `Depends` (optionally with `yield` for teardown)
 
-That handles the vast majority of real-world apps. A third-party container (`dependency-injector`) is only needed when DI is required outside of route handlers or when the graph gets deep.
+That handles the vast majority of real-world apps.
 
 ## 1. Settings (read-only config from env / `.env`)
 
@@ -183,29 +183,6 @@ In a layered architecture, `DbSession` is consumed by the repository layer --- r
 app.dependency_overrides[get_db] = lambda: test_session
 ```
 
-## 4. When to reach for `dependency-injector`
-
-FastAPI's native DI covers two lifetimes: per-request (`Depends`) and per-process (lifespan singleton). If that's all you need, stop here.
-
-Consider the [`dependency-injector`](https://python-dependency-injector.ets-labs.org/) library when:
-
-- **DI is needed outside route handlers** --- Celery tasks, CLI commands, background workers. FastAPI's `Depends` only works inside route handlers.
-- **You need richer lifecycle semantics** --- `Factory` (new instance per call), `Resource` (singleton with init/shutdown), `Singleton` (singleton with init/shutdown).
-- **Your dependency graph is deep** --- a declarative container makes a complex graph (Service -> Repo -> Pool -> Settings) visible in one place instead of scattered across lifespan + multiple `get_*` functions.
-- **You need granular test overrides** --- `.override()` works on any provider at any depth, not just at the handler boundary.
-
-```python
-from dependency_injector import containers, providers
-
-
-class Container(containers.DeclarativeContainer):
-    config = providers.Configuration()
-    db_pool = providers.Resource(init_db_pool, dsn=config.database_url)
-    repo = providers.Singleton(PostgresRepository, pool=db_pool)
-    solver = providers.Singleton(Solver)
-    service = providers.Factory(BookingService, repo=repo, solver=solver)
-```
-
 ## Decision Matrix
 
 | What you're injecting | Pattern | Why |
@@ -213,8 +190,6 @@ class Container(containers.DeclarativeContainer):
 | Read-only config (`Settings`) | `@lru_cache` + `Depends` | Docs-blessed; memoizes `.env` read; no teardown needed |
 | Stateful singletons (repo, service, pool) | Lifespan + `app.state` + `Depends` | Explicit lifecycle; teardown via `yield`; testable |
 | Per-request objects (DB session, auth context) | `Depends` with `yield` | FastAPI handles per-request creation and teardown |
-| Anything used outside route handlers | `dependency-injector` | FastAPI's `Depends` doesn't work in CLI/workers/tasks |
-| Deep or complex graphs (5+ layers) | `dependency-injector` | Declarative container beats scattered `get_*` functions |
 
 ## Anti-Patterns
 
@@ -244,4 +219,4 @@ FastAPI runs **sync** route handlers in a threadpool. All patterns above produce
 - [FastAPI - Dependencies](https://fastapi.tiangolo.com/tutorial/dependencies/) --- how to use the `Depends` decorator to inject dependencies into route handlers.
 - [FastAPI - Lifespan Events](https://fastapi.tiangolo.com/advanced/events/) --- how to use the lifespan context manager to create and manage resources.
 - [Starlette - State](https://www.starlette.io/applications/#storing-state-on-the-app-instance) --- how to store state on the app instance.
-- [dependency-injector](https://python-dependency-injector.ets-labs.org/) --- third-party DI container for deeper/complex non-FastAPI dependency graphs.
+- [dependency-injector](https://python-dependency-injector.ets-labs.org/) --- third-party DI container; useful when you need DI outside route handlers (Celery tasks, CLI commands) or have deep dependency graphs. Check out how I use it here in my [secret santa telegram bot](https://github.com/rayannott/ded-moroz/blob/main/src/dependencies.py).

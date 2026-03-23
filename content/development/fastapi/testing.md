@@ -164,4 +164,5 @@ async def test_health_returns_debug_flag(client: AsyncClient) -> None:
 - [httpx --- Async Client](https://www.python-httpx.org/async/)
 - [pytest-asyncio](https://pytest-asyncio.readthedocs.io/)
 - [polyfactory](https://polyfactory.litestar.dev/) --- auto-generate test data from Pydantic models
+- [hypothesis](https://hypothesis.readthedocs.io/) --- property-based testing
 - [pytest-cov](https://pytest-cov.readthedocs.io/)

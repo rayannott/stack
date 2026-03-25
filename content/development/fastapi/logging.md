@@ -41,7 +41,7 @@ loguru reads the `LOGURU_LEVEL` environment variable to set the minimum log leve
 # .env
 LOGURU_LEVEL=DEBUG    # dev
 ```
-Speaking of local development, [direnv]({{< ref "/tools/terminal/direnv" >}}) can auto-load `.env` files when you `cd` into the project directory. Decrease the mental overhead of having to remember these small details and rather spend your brain power on the more important things.
+Speaking of local development, [direnv](https://direnv.net/) can auto-load `.env` files when you `cd` into the project directory. Decrease the mental overhead of having to remember these small details and rather spend your brain power on the more important things.
 
 ```bash
 # production
@@ -120,15 +120,5 @@ For ECS / Fargate, the default `awslogs` log driver captures everything written 
 
 No loguru plugin or CloudWatch SDK is needed --- the log driver handles transport. I'll speak more about this in the [Deployment](../deployment) page.
 
-<!-- TODO: Request-ID middleware
-     Assign a unique ID to each incoming request (via middleware),
-     store it in a contextvars.ContextVar, and attach it to every log
-     entry via loguru's `logger.bind(request_id=...)` or `logger.contextualize()`.
-     This lets you trace all log lines for a single request across services. -->
-
-<!-- TODO: Correlation IDs
-     Similar to request IDs but propagated across service boundaries.
-     The upstream caller sends a correlation ID in a header (e.g. X-Correlation-ID),
-     the middleware reads it (or generates one if missing), and attaches it to logs
-     and outgoing requests. This enables distributed tracing without a full
-     tracing system like OpenTelemetry. -->
+> [!TIP]
+> For correlating logs across services (trace IDs, span IDs, distributed tracing), see [Observability / Distributed Tracing](../../observability/distributed-tracing).

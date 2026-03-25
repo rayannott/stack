@@ -1,0 +1,55 @@
+<nav class="content-tree" aria-label="Site contents">
+  <ul class="ct-root">
+    {{- range site.Sections }}
+      {{- partial "content-tree-item.html" . }}
+    {{- end }}
+  </ul>
+</nav>
+
+<style>
+.content-tree {
+  line-height: 1.75;
+}
+.content-tree ul {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+.content-tree ul ul {
+  margin-left: 0.6em;
+  padding-left: 1.2em;
+}
+.content-tree li {
+  position: relative;
+}
+.content-tree ul ul > li::before {
+  content: '';
+  position: absolute;
+  left: -1.2em;
+  top: 0;
+  height: 100%;
+  border-left: 1px solid;
+  opacity: 0.2;
+}
+.content-tree ul ul > li::after {
+  content: '';
+  position: absolute;
+  left: -1.2em;
+  top: 0.875em;
+  width: 1em;
+  border-bottom: 1px solid;
+  opacity: 0.2;
+}
+.content-tree ul ul > li:last-child::before {
+  height: 0.875em;
+}
+.content-tree a {
+  text-decoration: none;
+}
+.content-tree a:hover {
+  text-decoration: underline;
+}
+.content-tree .ct-section > a {
+  font-weight: 600;
+}
+</style>

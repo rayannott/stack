@@ -13,3 +13,7 @@
     {{- $favicon = "/favicons/tools.svg" -}}
 {{- end -}}
 <link rel="icon" type="image/svg+xml" href="{{ $favicon | absURL }}">
+<style>
+@media (min-width: 735px)  { .layout { max-width: 700px; } }
+@media (min-width: 1024px) { .layout { max-width: 850px; } }
+</style>

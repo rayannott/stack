@@ -1,0 +1,81 @@
+{{- $uiIcons := partialCached "_funcs/get-ui-icons.html" . }}
+
+<header class="not-last:mb-r-xl wrap-anywhere">
+
+    {{- partial "breadcrumbs.html" . }}
+
+    <hgroup class="not-last:mb-r-md">
+        <h1 class="flex items-center not-last:mb-r-md hyphens-auto font-bold text-3xl md:text-4xl text-neso-fg1">
+            {{- if .Draft }}
+                <span class="flex order-last items-center gap-1
+                             ms-auto px-2 py-1
+                             text-neso-fg3 bg-neso-bg2 border-1 border-neso-deco2 rounded-md">
+                    <svg class="size-4 stroke-2 stroke-current fill-none" aria-hidden="true">
+                        <use href="{{ $uiIcons.RelPermalink }}#feather" />
+                    </svg>
+                    <span class="font-medium hidden sm:inline text-sm">
+                        {{- i18n "draft" | default "Draft" -}}
+                    </span>
+                </span>
+            {{- end }}
+            {{ .Title }}
+
+            {{- $alwaysShowRSS := site.Params.neso.list.provide_rss_for_each_list }}
+            {{- $isArchives    := and (eq .Layout "archives") .IsPage }}
+            {{- if $alwaysShowRSS }}
+                {{- $rss := .OutputFormats.Get "rss" }}
+                {{- if $isArchives }}
+                    {{- $rss = .Parent.OutputFormats.Get "rss" }}
+                {{- end }}
+                {{- if or (in (slice "term" "section") .Kind) $isArchives }}
+                    {{- with $rss }}
+                        <a class="ms-2 text-neso-fg3 hover:text-neso-splash focus-visible:text-neso-splash" href="{{ .RelPermalink }}" title="RSS" aria-label="RSS">
+                            <svg class="size-6 stroke-3 stroke-current fill-none">
+                                <use href="{{ $uiIcons.RelPermalink }}#rss" />
+                            </svg>
+                        </a>
+                    {{- end }}
+                {{- end }}
+            {{- end }}
+
+            {{- with .OutputFormats.Get "Raw" }}
+                <a class="ms-2 text-neso-fg3 hover:text-neso-splash focus-visible:text-neso-splash"
+                   href="{{ .RelPermalink }}" title="Raw Markdown" aria-label="Raw Markdown">
+                    <svg class="size-5 stroke-2 stroke-current fill-none" viewBox="0 0 24 24" aria-hidden="true"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 18 22 12 16 6" />
+                        <polyline points="8 6 2 12 8 18" />
+                    </svg>
+                </a>
+            {{- end }}
+        </h1>
+        {{- if not site.Params.neso.page.hide_description_in_single }}
+            {{- with .Description }}
+                <div class="text-lg md:text-xl">
+                    {{ . | markdownify }}
+                </div>
+            {{- end }}
+        {{- end }}
+    </hgroup>
+
+    {{- if and (not .IsNode) (not .Layout) }}
+    {{- /* Not node, no specific layout (i.e. search/archives) = single */}}
+       {{- $hideMeta := site.Params.neso.page.hide_metadata }}
+       {{- with .Params.neso }}
+           {{- with index . "hide_metadata" }}
+               {{- $hideMeta = . }}
+           {{- end }}
+       {{- end }}
+        {{- if not $hideMeta }}
+            <div class="text-neso-fg3">
+                <div class="flex flex-wrap items-baseline">
+                    {{- partial "content/metadata.html" . }}
+                    {{- partial "content/translations.html" . }}
+                </div>
+                <div>
+                    {{- partial "content/canonical_links.html" . }}
+                </div>
+            </div>
+        {{- end }}
+    {{- end }}
+</header>

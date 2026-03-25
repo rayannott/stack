@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: hugo-build
+        name: hugo build
+        entry: hugo --gc --printPathWarnings
+        language: system
+        always_run: true
+        pass_filenames: false

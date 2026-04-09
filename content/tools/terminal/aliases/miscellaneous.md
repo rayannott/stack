@@ -1,6 +1,6 @@
 ---
 title: "miscellaneous"
-date: 2026-04-09T12:00:00+02:00
+date: 2026-04-09T00:00:00+02:00
 description: "Miscellaneous shell aliases and functions."
 tags: ["Aliases", "Python", "Clipboard"]
 draft: false

@@ -59,11 +59,15 @@ def health(settings: SettingsDep) -> dict:
     return {"status": "ok", "debug": settings.debug}
 ```
 
-**Testing:** override the dependency --- `lru_cache` is bypassed entirely. See [Testing](../testing#dependency_overrides) for the full fixture pattern.
+**Testing:** override the dependency --- `lru_cache` is bypassed entirely. Point it at a disposable Postgres container so your tests run against the same engine as production (never swap Postgres for SQLite --- query behaviour, types, and constraints differ). [testcontainers-python](https://testcontainers-python.readthedocs.io/) spins one up in a fixture. See [Testing](../testing#dependency_overrides) for the full fixture pattern.
 
 ```python
-app.dependency_overrides[get_settings] = lambda: Settings(database_url="sqlite+aiosqlite:///test.db")
+app.dependency_overrides[get_settings] = lambda: Settings(
+    db=DatabaseSettings(url="postgresql://test:test@localhost:5433/test_db")
+)
 ```
+
+If you call `get_settings()` directly outside the FastAPI request cycle (e.g. in a CLI command or a test helper), `dependency_overrides` has no effect. Reset the cache instead: `get_settings.cache_clear()`.
 
 ## 2. Engine and connection pool (process-scoped)
 
@@ -106,6 +110,16 @@ Schema creation and migrations are handled by [Alembic](https://alembic.sqlalche
 
 > [!NOTE]
 > The [official full-stack-fastapi-template](https://github.com/fastapi/full-stack-fastapi-template) uses a module-level global `engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))`. That works fine --- the engine is a thread-safe connection pool --- but `app.state` integrates better with the app factory pattern and `dependency_overrides` in tests: you can create multiple app instances with different engines without monkey-patching module-level globals.
+
+> [!WARNING]
+> Starlette's `app.state` is dynamically typed --- `request.app.state.engine` will cause Mypy / Pyright errors because the attribute doesn't exist in the `State` class definition. Suppress with `# type: ignore[attr-defined]`, or use `cast` to keep strict linters happy:
+>
+> ```python
+> from typing import cast
+> from sqlalchemy import Engine
+>
+> engine = cast(Engine, request.app.state.engine)
+> ```
 
 ## 3. Per-request DI chain (SQL layer)
 

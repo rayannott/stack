@@ -4,6 +4,7 @@ date: 2026-03-03T13:28:00+01:00
 description: "Shell aliases I use to speed up my terminal workflow."
 tags: ["Git", "Aliases", "Python", "Clipboard"]
 draft: false
+weight: 10
 params:
   neso:
     show_toc: true

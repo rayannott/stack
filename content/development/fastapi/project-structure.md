@@ -250,6 +250,9 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def create_user(body: UserCreate, db: DbSession) -> UserResponse:
     ...
 
+@router.get("/")
+async def get_users(db: DbSession) -> List[UserResponse]:
+    ...
 
 @router.get("/{user_id}")
 async def get_user(user_id: int, db: DbSession) -> UserResponse:

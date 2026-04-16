@@ -1,7 +1,7 @@
 {{- if .Page.Store.Get "hasMermaid" }}
 <script type="module">
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  mermaid.initialize({ startOnLoad: true, theme: prefersDark ? 'dark' : 'default' });
+  const scheme = document.documentElement.getAttribute('data-color-scheme');
+  mermaid.initialize({ startOnLoad: true, theme: scheme === 'dark' ? 'dark' : 'default' });
 </script>
 {{- end }}

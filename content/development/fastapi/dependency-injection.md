@@ -27,6 +27,43 @@ FastAPI's native DI covers two lifetimes out of the box:
 
 That handles the vast majority of real-world apps. The examples below use [SQLModel](https://sqlmodel.tiangolo.com/) (sync) for the SQL layer and [motor](https://motor.readthedocs.io/) for MongoDB. [Section 5](#5-with-async-sqlalchemy) shows how the same patterns look with async SQLAlchemy.
 
+Here is how all the pieces fit together --- each numbered section below explains one part of this diagram:
+
+```mermaid
+graph TD
+    subgraph lifespanPhase ["Lifespan (process startup)"]
+        getSettings["get_settings()"]
+        createEngine["create_engine()"]
+        motorClient["AsyncIOMotorClient()"]
+        auditRepo["AuditRepository()"]
+        auditSvc["AuditService()"]
+
+        getSettings --> createEngine
+        getSettings --> motorClient
+        motorClient --> auditRepo
+        auditRepo --> auditSvc
+    end
+
+    createEngine -.->|"app.state.engine"| getSession
+    auditSvc -.->|"app.state.audit_service"| getAuditSvc
+
+    subgraph sqlChain ["Per-request DI chain (SQL)"]
+        getSession["get_session()"]
+        getRepo["get_booking_repo()"]
+        getBookingSvc["get_booking_service()"]
+
+        getSession -->|SessionDep| getRepo
+        getRepo -->|BookingRepoDep| getBookingSvc
+    end
+
+    subgraph mongoSingleton ["Singleton (MongoDB)"]
+        getAuditSvc["get_audit_service()"]
+    end
+
+    getBookingSvc -->|BookingServiceDep| handler["Route handler"]
+    getAuditSvc -->|AuditServiceDep| handler
+```
+
 ## 1. Settings (read-only config from env / `.env`)
 
 **Pattern: `lru_cache` + `Depends`**
@@ -125,13 +162,7 @@ Schema creation and migrations are handled by [Alembic](https://alembic.sqlalche
 
 **Pattern: `Depends` sub-dependencies**
 
-When the ORM requires a session scoped to a unit of work (SQLAlchemy / SQLModel), the session, repository, and service should all be **per-request**. FastAPI's [sub-dependency](https://fastapi.tiangolo.com/tutorial/dependencies/sub-dependencies/) system wires them into a chain that is resolved automatically on each request:
-
-```
-Endpoint ← ServiceDep ← RepoDep ← SessionDep ← app.state.engine
-```
-
-Each link in the chain is a `Depends` function. FastAPI calls them right-to-left, caches each result within the request, and tears down `yield`-based dependencies after the response is sent.
+When the ORM requires a session scoped to a unit of work (SQLAlchemy / SQLModel), the session, repository, and service should all be **per-request**. FastAPI's [sub-dependency](https://fastapi.tiangolo.com/tutorial/dependencies/sub-dependencies/) system wires them into a chain --- the "Per-request DI chain" box in the [diagram above](#the-problem). Each link is a `Depends` function. FastAPI resolves them right-to-left, caches each result within the request, and tears down `yield`-based dependencies after the response is sent.
 
 ```python
 # src/dependencies.py

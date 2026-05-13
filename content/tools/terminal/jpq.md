@@ -207,6 +207,7 @@ events \
           for e in this["events"] if e["category"] == "build"]' \
   | jpq '{"mean_dur_s": round(statistics.mean(int(r["dur"]) for r in this), 1),
           "max_dur_s": max(int(r["dur"]) for r in this),
+          "stdev_dur_s": round(statistics.stdev(int(r["dur"]) for r in this), 1),
           "n_builds": len(this)}'
 ```
 
@@ -214,13 +215,12 @@ events \
 {
   "mean_dur_s": 334.3,
   "max_dur_s": 510,
+  "stdev_dur_s": 95.4,
   "n_builds": 7
 }
 ```
 
 Drop the second `| jpq ...` and you see what stage 1 produced --- a clean list of `{"num": ..., "dur": ...}` records --- which is also the answer to "why is my final number wrong?". Try writing the same logic as a single nested expression and you'll appreciate the pipe.
-
-The one cost: each `|` re-serialises and re-parses JSON. For 18 events that's free; for a million log lines you'd want to fuse the stages back together (or, honestly, stop using `jpq` and write a script).
 
 ## Tips
 

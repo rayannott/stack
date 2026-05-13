@@ -161,23 +161,7 @@ events | jpq '[re.search(r"build #(?P<num>\d+).*?(?P<dur>\d+)s", e["message"]).g
 ]
 ```
 
-### 7. Redact IPs --- `re.sub`
-
-`ERROR` events only, with a reshape so the output stays tight:
-
-```bash
-events | jpq '[{"id": e["id"], "msg": re.sub(r"\d+\.\d+\.\d+\.\d+", "x.x.x.x", e["message"])}
- for e in this["events"] if e["level"] == "ERROR"]'
-```
-
-```json
-[
-  {"id": "evt_013", "msg": "build #1239 failed after 420s on agent x.x.x.x"},
-  {"id": "evt_014", "msg": "user mallory failed login from x.x.x.x (3 attempts)"}
-]
-```
-
-### 8. IP-bearing events, partitioned by `level`
+### 7. IP-bearing events, partitioned by `level`
 
 Filter to events whose message contains an IP, then bucket by whether they're `INFO` or not:
 
@@ -195,7 +179,7 @@ events | jpq '{k: [e["id"] for e in this["events"]
 }
 ```
 
-### 9. Score summary --- `statistics` + `math`
+### 8. Score summary --- `statistics` + `math`
 
 ```bash
 events | jpq '{"avg": round(statistics.mean(e["score"] for e in this["events"]), 3),
@@ -210,6 +194,33 @@ events | jpq '{"avg": round(statistics.mean(e["score"] for e in this["events"]),
   "log2_n": 4.17
 }
 ```
+
+### 9. Pipe `jpq` into `jpq` to keep each stage small
+
+`jpq`'s output is JSON, which makes it valid `jpq` input. Splitting a heavy transformation across two pipes keeps each stage trivially debuggable (run the first one alone and eyeball the result) and lets you reuse the intermediate shape.
+
+Compare aggregating build durations as **one expression** versus as **two pipes**. Stage 1 parses the messages into structured records; stage 2 aggregates over them:
+
+```bash
+events \
+  | jpq '[re.search(r"build #(?P<num>\d+).*?(?P<dur>\d+)s", e["message"]).groupdict()
+          for e in this["events"] if e["category"] == "build"]' \
+  | jpq '{"mean_dur_s": round(statistics.mean(int(r["dur"]) for r in this), 1),
+          "max_dur_s": max(int(r["dur"]) for r in this),
+          "n_builds": len(this)}'
+```
+
+```json
+{
+  "mean_dur_s": 334.3,
+  "max_dur_s": 510,
+  "n_builds": 7
+}
+```
+
+Drop the second `| jpq ...` and you see what stage 1 produced --- a clean list of `{"num": ..., "dur": ...}` records --- which is also the answer to "why is my final number wrong?". Try writing the same logic as a single nested expression and you'll appreciate the pipe.
+
+The one cost: each `|` re-serialises and re-parses JSON. For 18 events that's free; for a million log lines you'd want to fuse the stages back together (or, honestly, stop using `jpq` and write a script).
 
 ## Tips
 

@@ -56,8 +56,6 @@ The schema, as a 3-event preview (one auth, one build, one deploy):
 }
 ```
 
-Four field axes that don't overlap: `level` (outcome severity), `category` (event class), `score` (continuous health metric), and `tags` (orthogonal context --- environment, build trigger, MFA flag, deploy strategy). No `"success"` / `"failure"` in tags --- that's what `level` is for.
-
 ## Examples
 
 ### 1. Count the events --- builtins
@@ -86,8 +84,6 @@ events | jpq 'collections.Counter(e["level"] for e in this["events"])'
 
 ### 3. Tag frequency --- `Counter` over a flattened generator
 
-The nested `for` in a generator expression is one of the parts of Python that earns its keep:
-
 ```bash
 events | jpq 'collections.Counter(t for e in this["events"] for t in e["tags"])'
 ```
@@ -108,8 +104,6 @@ events | jpq 'collections.Counter(t for e in this["events"] for t in e["tags"])'
 
 ### 4. Mean score per category --- `itertools.groupby` + `statistics`
 
-`itertools.groupby` only groups *consecutive* equal keys. If you forget to `sorted()` first you get garbage, and there's no one to blame but yourself:
-
 ```bash
 events | jpq '{k: round(statistics.mean(e["score"] for e in g), 3)
  for k, g in itertools.groupby(
@@ -124,6 +118,8 @@ events | jpq '{k: round(statistics.mean(e["score"] for e in g), 3)
   "deploy": 0.775
 }
 ```
+
+Note: `itertools.groupby` only groups *consecutive* equal keys, so if you forget to `sorted()` first you get garbage.
 
 ### 5. Daily buckets --- `groupby` keyed by `datetime.date`
 
@@ -145,7 +141,7 @@ events | jpq '{str(d): [e["id"] for e in g]
 
 ### 6. Parse build messages --- `re.search` with named groups
 
-Free-text messages become structured records. The non-greedy `.*?` handles the three different build-message shapes (`finished in Ns`, `finished in Ns with K flaky tests`, `failed after Ns on agent IP`) in one regex:
+Free-text messages become structured records.
 
 ```bash
 events | jpq '[re.search(r"build #(?P<num>\d+).*?(?P<dur>\d+)s", e["message"]).groupdict()

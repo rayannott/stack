@@ -1,6 +1,7 @@
 ---
 title: "jpq"
 date: 2026-05-13T15:22:00+02:00
+lastmod: 2026-05-15T10:39:00+02:00
 description: "jq-style JSON filtering with Python expressions."
 tags: ["Python", "JSON", "CLI"]
 draft: false
@@ -13,6 +14,11 @@ params:
 [`jpq`](https://github.com/rayannott/jpq) is a tiny CLI I wrote because I have `jq` reflexes but a Python brain. JSON comes in on stdin, gets bound to `this`, an expression runs against it, and the result goes back out as JSON. No DSL to memorise --- just Python.
 
 <!--more-->
+
+*Last updated 2026-05-15, against `jpq` [v0.1.5](https://github.com/rayannott/jpq/releases/tag/v0.1.5).*
+
+> [!NOTE]
+> Output is now syntax-highlighted automatically when stdout is a TTY --- no flag needed. Pass `--no-color` or set `NO_COLOR=1` to opt out; piping or redirecting still produces plain JSON, so downstream tools won't see ANSI escape codes.
 
 ## Install
 
@@ -218,11 +224,21 @@ events \
 
 Drop the second `| jpq ...` and you see what stage 1 produced --- a clean list of `{"num": ..., "dur": ...}` records --- which is also the answer to "why is my final number wrong?". Try writing the same logic as a single nested expression and you'll appreciate the pipe.
 
+### 10. JSONL on stdin --- slurp with `jq -s`
+
+`jpq` expects a single JSON value on stdin, not JSONL (one JSON object per line). I deliberately didn't add a flag for this: `jq -s` already turns a stream of values into a list, and there's no reason to reinvent it.
+
+```bash
+cat events.jsonl | jq -s '.' | jpq 'collections.Counter(e["level"] for e in this)'
+```
+
+Same expression as example 2, just with a different input shape. The `jq -s` step is the only thing that changes.
+
 ## Tips
 
 - `-c` / `--compact` strips indentation. Useful when piping into another tool that wants single-line JSON.
 - Exit codes mean something: `3` on bad stdin, `4` on an expression that fails to parse or raises at runtime, `5` on a non-JSON-serialisable result. Scripts can branch on these.
-- Pipe `jpq | jq` if you really want jq's colourisation on the way out. The two of them are friends, not rivals.
+- Colourisation is on by default when stdout is a TTY (see the note at the top). `jpq | jq` still works if you prefer jq's palette --- the two are friends, not rivals.
 
 > [!TIP]
 > If a one-liner gets long, break it across multiple lines inside the same quoted string --- the expression compiler doesn't care about whitespace, and your shell will keep the quote open until you close it.

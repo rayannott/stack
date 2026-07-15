@@ -1,7 +1,7 @@
 ---
 title: "jpq"
 date: 2026-05-13T15:22:00+02:00
-lastmod: 2026-05-15T10:39:00+02:00
+lastmod: 2026-07-15T12:05:00+02:00
 description: "jq-style JSON filtering with Python expressions."
 tags: ["Python", "JSON", "CLI"]
 draft: false
@@ -15,10 +15,10 @@ params:
 
 <!--more-->
 
-*Last updated 2026-05-15, against `jpq` [v0.1.5](https://github.com/rayannott/jpq/releases/tag/v0.1.5).*
+*Last updated 2026-07-15, against `jpq` [v0.2.0](https://github.com/rayannott/jpq/releases/tag/v0.2.0).*
 
 > [!NOTE]
-> Output is now syntax-highlighted automatically when stdout is a TTY --- no flag needed. Pass `--no-color` or set `NO_COLOR=1` to opt out; piping or redirecting still produces plain JSON, so downstream tools won't see ANSI escape codes.
+> As of v0.2.0, dict keys are accessible as attributes: `this.name` instead of `this["name"]`. It works at any depth --- dicts nested in dicts, dicts inside lists --- so `this.a[0].b` just works. A missing key raises `AttributeError`, which surfaces as the usual expression-error exit code `4`. The bracket form still works everywhere, so nothing below breaks.
 
 ## Install
 
@@ -32,7 +32,7 @@ uv tool install jpq
 
 Three things to remember, and then you're done:
 
-- Stdin JSON is parsed and bound to `this`.
+- Stdin JSON is parsed and bound to `this`. Dict keys double as attributes, so `this.events` and `this["events"]` are interchangeable.
 - The expression you pass is `eval`'d with `re`, `os`, `collections`, `itertools`, `statistics`, `math`, `datetime`, `pathlib` pre-imported, plus every builtin, plus an `env("NAME")` helper for env vars.
 - The result is dumped back to stdout as JSON. `set`, `datetime`, and `pathlib.Path` are coerced automatically; `-c` / `--compact` strips the indentation when you want to pipe further.
 
@@ -67,12 +67,14 @@ The schema, as a 3-event preview (one auth, one build, one deploy):
 ### 1. Count the events --- builtins
 
 ```bash
-events | jpq 'len(this["events"])'
+events | jpq 'len(this.events)'
 ```
 
 ```json
 18
 ```
+
+`this.events` is the attribute spelling of `this["events"]` --- either works, at any nesting depth.
 
 ### 2. Level distribution --- `collections.Counter`
 
@@ -238,7 +240,7 @@ Same expression as example 2, just with a different input shape. The `jq -s` ste
 
 - `-c` / `--compact` strips indentation. Useful when piping into another tool that wants single-line JSON.
 - Exit codes mean something: `3` on bad stdin, `4` on an expression that fails to parse or raises at runtime, `5` on a non-JSON-serialisable result. Scripts can branch on these.
-- Colourisation is on by default when stdout is a TTY (see the note at the top). `jpq | jq` still works if you prefer jq's palette --- the two are friends, not rivals.
+- Colourisation is on by default when stdout is a TTY. Pass `--no-color` or set `NO_COLOR=1` to opt out; piping or redirecting still produces plain JSON, so downstream tools won't see ANSI escape codes. `jpq | jq` still works if you prefer jq's palette --- the two are friends, not rivals.
 
 > [!TIP]
 > If a one-liner gets long, break it across multiple lines inside the same quoted string --- the expression compiler doesn't care about whitespace, and your shell will keep the quote open until you close it.

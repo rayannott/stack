@@ -3,8 +3,6 @@
 {{- $path := .RelPermalink -}}
 {{- if hasPrefix $path "/tools/git" -}}
     {{- $favicon = "/favicons/git.svg" -}}
-{{- else if hasPrefix $path "/tools/cursor" -}}
-    {{- $favicon = "/favicons/cursor.png" -}}
 {{- else if hasPrefix $path "/tools/terminal" -}}
     {{- $favicon = "/favicons/terminal.svg" -}}
 {{- else if hasPrefix $path "/tools/linux" -}}
